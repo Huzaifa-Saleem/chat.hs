@@ -77,6 +77,9 @@ importers:
       tailwind-merge:
         specifier: ^3.3.0
         version: 3.3.1
+      webhooks:
+        specifier: link:@clerk/nextjs/webhooks
+        version: link:@clerk/nextjs/webhooks
       zod:
         specifier: ^3.25.63
         version: 3.25.63
