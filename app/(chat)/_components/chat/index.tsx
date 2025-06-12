@@ -1,4 +1,5 @@
 "use client";
+import { useChat } from "@ai-sdk/react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -6,32 +7,30 @@ import { ArrowUp, Send } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import SelectModel from "./select-model";
 import { Badge } from "@/components/ui/badge";
-
-interface Message {
-  id: string;
-  content: string;
-  role: "user" | "assistant";
-}
+import ReactMarkdown from "react-markdown";
+import { toast } from "sonner";
 
 const Chat = () => {
-  const [input, setInput] = useState("");
+  const [selectedModel, setSelectedModel] = useState("claude-3-5-sonnet");
 
-  // Example messages for UI demonstration
-  const [messages, setMessages] = useState<Message[]>([
-    { id: "1", content: "Hello! How can I help you today?", role: "assistant" },
-    { id: "2", content: "I need help with my project", role: "user" },
-    {
-      id: "3",
-      content:
-        "I'd be happy to help with your project. What specifically are you working on?",
-      role: "assistant",
-    },
-  ]);
+  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+    useChat({
+      api: "/api/chat",
+      body: {
+        model: selectedModel,
+      },
+      onError: (error) => {
+        toast.error("Failed to send message. Please try again.");
+      },
+    });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Just UI, no functionality as requested
-    setInput("");
+    if (!input.trim()) {
+      toast.error("Please enter a message");
+      return;
+    }
+    handleSubmit(e);
   };
 
   return (
@@ -39,39 +38,66 @@ const Chat = () => {
       <div className="flex flex-col h-full w-full max-w-3xl">
         {/* Chat messages container */}
         <div className="h-full overflow-y-auto p-4">
-          {messages.map((message) => (
+          {messages.map((message, i) => (
             <div
-              key={message.id}
+              key={i}
               className={`mb-4 ${
                 message.role === "user" ? "text-right" : "text-left"
               }`}
             >
-              <p className="inline-block px-4 py-2 rounded-full">
-                {message.content}
-              </p>
+              <div className="inline-block px-4 py-2 rounded-lg bg-sidebar-accent">
+                {message.role === "assistant" ? (
+                  <div className="prose prose-invert max-w-none">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <p>{message.content}</p>
+                )}
+              </div>
             </div>
           ))}
+          {isLoading && (
+            <div className="mb-4 text-left">
+              <div className="inline-block px-4 py-2 rounded-lg bg-sidebar-accent">
+                <div className="flex space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" />
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:0.2s]" />
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:0.4s]" />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Input area */}
         <div className="border bg-sidebar p-1 rounded-t-lg">
           <form
-            onSubmit={handleSubmit}
-            className=" border bg-sidebar-accent p-2 pb-0 rounded-t-lg space-x-2"
+            onSubmit={onSubmit}
+            className="border bg-sidebar-accent p-2 pb-0 rounded-t-lg space-x-2"
           >
             <Textarea
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={handleInputChange}
               placeholder="Type a message..."
               className="min-h-[60px] border-none focus-visible:ring-0 focus-visible:ring-offset-0 outline-none shadow-none mb-2"
             />
             <div className="flex items-center justify-between px-2 py-1">
               <div className="flex items-center gap-2">
-                <SelectModel />
+                <SelectModel
+                  selectedModel={selectedModel}
+                  onModelChange={setSelectedModel}
+                />
                 <Badge variant="outline">Badge</Badge>
                 <Badge variant="outline">Badge</Badge>
               </div>
-              <Button type="submit" size="icon" className="opacity-50">
+              <Button
+                type="submit"
+                size="icon"
+                className={`transition-opacity duration-200 ${
+                  input.trim() ? "opacity-100" : "opacity-50"
+                }`}
+                disabled={!input.trim()}
+              >
                 <ArrowUp className="h-4 w-4" />
               </Button>
             </div>
