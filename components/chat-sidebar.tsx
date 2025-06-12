@@ -9,7 +9,6 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { LogIn, Search } from "lucide-react";
 import { currentUser } from "@clerk/nextjs/server";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 
 export async function ChatSidebar() {
