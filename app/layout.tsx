@@ -1,4 +1,6 @@
-import { type Metadata } from "next";
+import type { Metadata } from "next";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -15,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Chat-hs",
-  description: "Chat-hs a multi-model chatbot",
+  title: "Chat HS",
+  description: "Chat with AI models",
 };
 
 export default function RootLayout({
@@ -25,15 +27,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
         >
-          {children}
+          <ClerkProvider>{children}</ClerkProvider>
           <Toaster />
-        </body>
-      </html>
-    </ClerkProvider>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }
